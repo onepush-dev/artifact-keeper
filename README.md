@@ -9,7 +9,7 @@
 |---|---|---|
 | **artifact-keeper** (public) | `ghcr.io/onepush-dev/artifact-keeper-proxy:1.12.4` (Caddy 2.11.9 + upstream's Caddyfile routes) | Listens on 8080. `/api`, `/health`, `/livez`, `/readyz`, `/v2` (OCI) and every package-format prefix (`/npm`, `/pypi`, `/maven`, `/cargo`, `/helm`, …) go to the backend; everything else goes to the web UI. |
 | **backend** (private) | `ghcr.io/onepush-dev/artifact-keeper-backend:1.12.4` (official backend image, app unmodified; runs as root for the volume) | Rust API on 8080. Volume `/data` holds storage, backups, plugins and the scan workspace. |
-| **web** (private) | `ghcr.io/artifact-keeper/artifact-keeper-web:1.12.1` (official) | Next.js UI. |
+| **web** (private) | `ghcr.io/onepush-dev/artifact-keeper-web:1.12.1` (official web image, app unmodified; `AK_ENFORCE_HTTPS=true`) | Next.js UI on 8080. |
 | **Postgres** | Railway Postgres | Metadata (repositories, artifacts, users, tokens). |
 
 Upstream's optional OpenSearch, Trivy, OpenSCAP and Dependency-Track services are not included; add them later if you want search indexing and vulnerability scanning.
