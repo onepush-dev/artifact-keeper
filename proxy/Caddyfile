@@ -68,7 +68,7 @@
 
 :8080 {
 	# Local liveness for the Railway healthcheck (does not depend on the backend or web services)
-	respond /caddy-health "ok" 200
+	respond /proxyhealth "ok" 200
 	import backend_routes
 	reverse_proxy {$AK_WEB_UPSTREAM}
 }
