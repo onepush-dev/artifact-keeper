@@ -1,0 +1,72 @@
+# Artifact Keeper edge proxy for Railway, generated from upstream docker/Caddyfile (v1.12.4).
+# Railway terminates TLS, so Caddy only listens on plain HTTP :8080. Backend routes (API, health, OCI /v2 and
+# every native package-format prefix) go to the backend service; everything else goes to the web UI.
+# /metrics is not exposed publicly.
+{
+	auto_https off
+	admin off
+	servers {
+		trusted_proxies static private_ranges 100.64.0.0/10
+	}
+}
+
+(backend_routes) {
+	# API and health endpoints
+	reverse_proxy /api/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /health {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /livez {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /readyz {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /swagger-ui* {$AK_BACKEND_UPSTREAM}
+	# OCI / Docker registry
+	reverse_proxy /v2 {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /v2/* {$AK_BACKEND_UPSTREAM}
+	# Native package format handlers — route directly to backend
+	# so requests avoid the Next.js middleware proxy hop. Keep this list in
+	# step with `format_routes` in backend/src/api/routes.rs: a prefix that is
+	# missing here falls through to the web UI and gets its HTML 404 (#4482,
+	# #1772). scripts/ci/check-caddy-format-routes.sh enforces it.
+	reverse_proxy /general/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /maven/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /npm/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /pypi/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /nuget/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /cargo/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /gems/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /go/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /helm/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /debian/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /rpm/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /alpine/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /pacman/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /composer/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /conan/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /conda/* {$AK_BACKEND_UPSTREAM}
+	# rattler's token-in-URL layout for conda: /t/<token>/conda/<repo>/... (#4555)
+	reverse_proxy /t/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /swift/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /terraform/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /cocoapods/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /hex/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /pub/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /lfs/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /ivy/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /chef/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /puppet/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /ansible/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /cran/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /bazel/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /huggingface/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /mcp/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /jetbrains/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /agentplugins/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /vscode/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /proto/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /incus/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /lxc/* {$AK_BACKEND_UPSTREAM}
+	reverse_proxy /ext/* {$AK_BACKEND_UPSTREAM}
+}
+
+:8080 {
+	import backend_routes
+	reverse_proxy {$AK_WEB_UPSTREAM}
+}
